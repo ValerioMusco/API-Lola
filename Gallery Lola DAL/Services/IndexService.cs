@@ -44,9 +44,11 @@ namespace Gallery_Lola_DAL.Services {
         }
 
         public IEnumerable<string> GetRandomPictures() {
-            
+
             using(IDbCommand command = _connection.CreateCommand()) {
 
+                List<string> tempPictures = new();
+                Random rand = new Random();
                 command.CommandType = CommandType.StoredProcedure;
                 command.CommandText = "GetAllMiniaturesByGroup";
                 GenerateParameter( command, "group", 0 );
@@ -55,7 +57,11 @@ namespace Gallery_Lola_DAL.Services {
                 _connection.Open();
                 IDataReader reader = command.ExecuteReader();
                 while( reader.Read() )
-                    yield return (string)reader["Path"];
+                    tempPictures.Add( (string)reader["Path"] );
+
+                _connection.Close();
+
+                return tempPictures.OrderBy(item => rand.Next()).Take(9).ToList();
             }
         }
 
