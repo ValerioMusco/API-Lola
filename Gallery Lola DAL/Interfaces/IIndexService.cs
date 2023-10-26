@@ -10,7 +10,6 @@ namespace Gallery_Lola_DAL.Interfaces {
 
         public IEnumerable<string> GetRandomPictures();
 
-
         /// <summary>
         /// Retourne un entier pour le cas à gérer.
         /// 0 => Recherche

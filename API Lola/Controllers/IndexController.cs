@@ -1,8 +1,11 @@
-﻿using Gallery_Lola_DAL.Exceptions;
+﻿using API_Lola.Tools;
+using Gallery_Lola_DAL.Exceptions;
 using Gallery_Lola_DAL.Interfaces;
 using Gallery_Lola_DAL.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace API_Lola.Controllers {
     [Route( "api/[controller]" )]
@@ -10,26 +13,35 @@ namespace API_Lola.Controllers {
     public class IndexController : ControllerBase {
 
         private readonly IIndexService _indexService;
+        private readonly TokenManager _tokenManager;
 
-        public IndexController(IIndexService indexService) {
+        public IndexController(IIndexService indexService, TokenManager token) {
 
             _indexService = indexService;
+            _tokenManager = token;
+
         }
 
         [HttpGet("GenerateToken/")]
-        public IActionResult GenerateToken( string token = "" ) {
+        public IActionResult GenerateToken( ) {
 
-            throw new NotImplementedException();
+            string json;
+            json = JsonConvert.SerializeObject(
+                new {
+                    token = _tokenManager.GenerateToken()
+                }
+            );
+            return Ok( json );
         }
 
         [HttpGet("GetRandomPictures/")]
         public IActionResult GetRandomPicture() {
 
-            foreach(string strings in _indexService.GetRandomPictures()) {
-                Console.WriteLine(strings);
-            }
+            List<string> pictures = new();
+            foreach(string strings in _indexService.GetRandomPictures())
+                pictures.Add(strings);
 
-            return Ok();
+            return Ok(pictures);
         }
 
         [HttpGet("CheckQuerryOrUnlock/{userInput}")]

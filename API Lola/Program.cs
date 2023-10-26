@@ -1,7 +1,11 @@
+using API_Lola.Tools;
 using Gallery_Lola_DAL.Interfaces;
 using Gallery_Lola_DAL.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using System.Data;
 using System.Data.SqlClient;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +19,23 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<IDbConnection, SqlConnection>( pc => new( builder.Configuration.GetConnectionString( "TechniMSSQL" ) ) );
 
 builder.Services.AddScoped<IIndexService, IndexService>();
+builder.Services.AddScoped<IFolderService, FolderService>();
+builder.Services.AddScoped<IGalleryService, GalleryService>();
+builder.Services.AddScoped<TokenManager>();
 
+builder.Services.AddAuthentication( JwtBearerDefaults.AuthenticationScheme ).AddJwtBearer(
+
+    options => options.TokenValidationParameters = new() {
+        ValidateLifetime = true,
+        ValidateIssuer = true,
+        //ValidIssuer = "monserverapi.com",
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes( TokenManager._secretKey )
+        ),
+        ValidateAudience = false
+    }
+);
 
 var app = builder.Build();
 
