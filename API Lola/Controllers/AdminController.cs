@@ -1,36 +1,97 @@
-﻿//using Microsoft.AspNetCore.Http;
-//using Microsoft.AspNetCore.Mvc;
+﻿using Gallery_Lola_DAL.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 
-//namespace API_Lola.Controllers {
-//    [Route( "api/[controller]" )]
-//    [ApiController]
-//    public class AdminController : ControllerBase {
+namespace API_Lola.Controllers {
+    [Route( "api/[controller]" )]
+    [ApiController]
+    public class AdminController : ControllerBase {
 
+        private readonly IAdminService _adminService;
 
+        public AdminController( IAdminService adminService ) {
 
-//        public IActionResult DeleteFolder( int id ) {
+            _adminService = adminService;
+        }
 
-//            throw new NotImplementedException();
-//        }
+        [HttpDelete("/DeleteFolder")]
+        public IActionResult DeleteFolder( int folderId ) {
 
-//        public IActionResult UpdateFolderContent( [FromBody] int folderId, [FromBody]IEnumerable<string> pictures, [FromBody] IEnumerable<string> miniatures) {
+            Directory.Delete( _adminService.PathToDirectory( folderId ), true );
+            _adminService.Delete( folderId, "Pictures" );
+            _adminService.Delete( folderId, "Miniatures" );
+            _adminService.DeleteFolder( folderId );
+            return Ok();
+        }
 
-//            throw new NotImplementedException();
-//        }
+        [HttpDelete("/DeleteFiles")]
+        public IActionResult UpdateFolderContent( int folderId, [FromForm] IEnumerable<string> pictures, [FromForm] IEnumerable<string> miniatures ) {
 
-//        public IActionResult UpdateFolderName( int folderId, string newName ) {
+            string dirPath = _adminService.PathToDirectory( folderId );
+            foreach( string p in pictures )
+                System.IO.File.Delete( Path.Combine( dirPath, p ) );
+            foreach( string m in miniatures )
+                System.IO.File.Delete( Path.Combine( dirPath, m ) );
 
-//            throw new NotImplementedException();
-//        }
+            _adminService.DeleteFiles( folderId, pictures, miniatures );
+            return Ok();
+        }
 
-//        public IActionResult CreateNewFolder ( string folderName, IEnumerable<string> pictures, IEnumerable<string> miniatures ) {
+        [HttpPatch("/ChangeFolderName")]
+        public IActionResult UpdateFolderName( int folderId, string newName ) {
 
-//            throw new NotImplementedException();
-//        }
+            string newPath = "E:\\FTP\\" + newName;
+            string dirPath = _adminService.PathToDirectory( folderId );
+            try {
+                Directory.CreateDirectory( dirPath );
+                Directory.Move( dirPath, newPath );
+                Directory.Delete( newPath );
+            }
+            catch( IOException ioe ) {
+                Console.WriteLine( ioe.ToString() );
+            }
+            catch( Exception e ) {
+                Console.WriteLine( e.ToString() );
+            }
+            _adminService.UpdateFolder( folderId, newName );
+            return Ok();
+        }
 
-//        public IActionResult DeletePictures( IEnumerable<string> fileNames ) {
+        [HttpPost("/Upload")]
+        public async Task<IActionResult> UploadNewFolder( [FromForm] string folderName, [FromForm] List<IFormFile> files ) {
 
-//            throw new NotImplementedException();
-//        }
-//    }
-//}
+            string ftp = "E:\\FTP";
+            string newDir = Path.Combine( ftp, folderName );
+            string[] miniaturesAndExtensions = { "_m.jpg", "_m.png", "_m.jpeg", "_m.txt" };
+            List<string> pictures = new();
+            List<string> miniatures = new();
+
+            Directory.CreateDirectory( newDir );
+
+            if( files is null || files.Count == 0 )
+                return BadRequest( "Aucun fichier n'a été fourni" );
+
+            try {
+
+                foreach( var file in files ) {
+
+                    if( file.Length == 0 )
+                        continue;
+
+                    string filePath = Path.Combine( newDir, file.FileName );
+
+                    using( var stream = new FileStream( filePath, FileMode.Create ) )
+                        await file.CopyToAsync( stream );
+                }
+
+                miniatures = files.Select(f => f.FileName).Where( f => miniaturesAndExtensions.Any( ext => f.EndsWith(ext, StringComparison.OrdinalIgnoreCase) ) ).ToList();
+                pictures = files.Select( f => f.FileName ).Except( miniatures ).ToList();
+                _adminService.AddFolder( folderName, pictures, miniatures );
+
+                return Ok( "Dossier ajouté avec succès" );
+            }
+            catch( Exception ex ) {
+                return StatusCode( 500, $"Une erreur s'est produite : {ex.Message}" );
+            }
+        }
+    }
+}

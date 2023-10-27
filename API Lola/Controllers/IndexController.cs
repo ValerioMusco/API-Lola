@@ -1,11 +1,8 @@
 ﻿using API_Lola.Tools;
 using Gallery_Lola_DAL.Exceptions;
 using Gallery_Lola_DAL.Interfaces;
-using Gallery_Lola_DAL.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using System.Text.Json.Serialization;
 
 namespace API_Lola.Controllers {
     [Route( "api/[controller]" )]

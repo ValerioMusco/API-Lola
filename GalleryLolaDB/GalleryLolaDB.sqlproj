@@ -72,6 +72,7 @@
     <Build Include="StoredProcedure\GetAllPictureById.sql" />
     <Build Include="StoredProcedure\GetAllMiniaturesById.sql" />
     <Build Include="StoredProcedure\SearchFolder.sql" />
+    <Build Include="StoredProcedure\GetUserAccessible.sql" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Table\UserUnlock.sql" />

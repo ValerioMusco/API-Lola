@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Gallery_Lola_DAL.Models;
 
 namespace Gallery_Lola_DAL.Interfaces {
     public interface IGalleryService : IBaseRepository {
 
         IEnumerable<int> GetYears();
-        IEnumerable<string> Search(string querry);
+        IEnumerable<Folders> Search(string querry);
+        IEnumerable<Folders> GetAll();
         bool AddToFavorite( int folderId, string userToken );
     }
 }

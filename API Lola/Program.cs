@@ -7,7 +7,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Text;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder( args );
 
 // Add services to the container.
 
@@ -16,11 +16,13 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddTransient<IDbConnection, SqlConnection>( pc => new( builder.Configuration.GetConnectionString( "TechniMSSQL" ) ) );
+builder.Services.AddTransient<IDbConnection, SqlConnection>( pc => new( builder.Configuration.GetConnectionString( "HomeMSSQL" ) ) );
 
 builder.Services.AddScoped<IIndexService, IndexService>();
 builder.Services.AddScoped<IFolderService, FolderService>();
 builder.Services.AddScoped<IGalleryService, GalleryService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IAccessControlService, AccessControlService>();
 builder.Services.AddScoped<TokenManager>();
 
 builder.Services.AddAuthentication( JwtBearerDefaults.AuthenticationScheme ).AddJwtBearer(

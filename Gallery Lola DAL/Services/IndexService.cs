@@ -1,11 +1,6 @@
 ﻿using Gallery_Lola_DAL.Exceptions;
 using Gallery_Lola_DAL.Interfaces;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Gallery_Lola_DAL.Services {
     public class IndexService : BaseRepository, IIndexService {

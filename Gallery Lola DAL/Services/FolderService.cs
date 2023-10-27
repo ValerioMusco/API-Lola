@@ -1,15 +1,28 @@
 ﻿using Gallery_Lola_DAL.Interfaces;
-using System;
-using System.Collections.Generic;
+using Gallery_Lola_DAL.Models;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Gallery_Lola_DAL.Services {
     public class FolderService : BaseRepository, IFolderService {
 
         public FolderService( IDbConnection connection ) : base( connection ) { }
+
+        public IEnumerable<Folders> GetAll( string token ) {
+            
+            using(IDbCommand command = _connection.CreateCommand() ) {
+
+                command.CommandType = CommandType.StoredProcedure;
+                command.CommandText = "GetUserAccessible";
+                GenerateParameter(command, "token", token );
+
+                CheckOpenConnection( _connection );
+                _connection.Open();
+
+                IDataReader reader = command.ExecuteReader();
+                while( reader.Read() )
+                    yield return Mapper( reader );
+            }
+        }
 
         public void Remove( int folderId, string token, string table) {
             
@@ -24,6 +37,16 @@ namespace Gallery_Lola_DAL.Services {
 
                 command.ExecuteNonQuery();
             }
+        }
+
+        private Folders Mapper( IDataReader reader ) {
+            return new Folders {
+
+                Id = (int)reader["Id"],
+                Name = (string)reader["Name"],
+                Group = (int)reader["Groupe"],
+                Year = (int)reader["Year"]
+            };
         }
     }
 }

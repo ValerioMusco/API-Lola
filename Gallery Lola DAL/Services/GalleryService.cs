@@ -1,14 +1,19 @@
 ﻿using Gallery_Lola_DAL.Interfaces;
-using System;
-using System.Collections.Generic;
+using Gallery_Lola_DAL.Models;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Gallery_Lola_DAL.Services {
     public class GalleryService : BaseRepository, IGalleryService {
         public GalleryService( IDbConnection connection ) : base( connection ) {
+        }
+        private Folders Mapper( IDataReader reader ) {
+            return new Folders {
+
+                Id = (int)reader["Id"],
+                Name = (string)reader["Name"],
+                Group = (int)reader["Groupe"],
+                Year = (int)reader["Year"]
+            };
         }
 
         public bool AddToFavorite( int folderId, string userToken ) {
@@ -42,7 +47,7 @@ namespace Gallery_Lola_DAL.Services {
             }
         }
 
-        public IEnumerable<string> Search( string querry ) {
+        public IEnumerable<Folders> Search( string querry ) {
             
             using(IDbCommand command = _connection.CreateCommand() ) {
 
@@ -56,7 +61,22 @@ namespace Gallery_Lola_DAL.Services {
 
                 IDataReader reader = command.ExecuteReader();
                 while( reader.Read() )
-                    yield return (string)reader["Name"];
+                    yield return Mapper(reader);
+            }
+        }
+
+        public IEnumerable<Folders> GetAll() {
+
+            using(IDbCommand command = _connection.CreateCommand() ) {
+
+                command.CommandText = "SELECT * FROM Folder WHERE Groupe = 0";
+
+                CheckOpenConnection(_connection );
+                _connection.Open();
+
+                IDataReader reader = command.ExecuteReader();
+                while( reader.Read() )
+                    yield return Mapper(reader);
             }
         }
     }

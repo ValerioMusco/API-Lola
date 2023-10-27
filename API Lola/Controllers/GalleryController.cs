@@ -1,6 +1,6 @@
 ﻿using Gallery_Lola_DAL.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 
 namespace API_Lola.Controllers {
 
@@ -9,10 +9,12 @@ namespace API_Lola.Controllers {
     public class GalleryController : ControllerBase {
 
         private readonly IGalleryService _galleryService;
+        private readonly IAccessControlService _accessControlService;
 
-        public GalleryController(IGalleryService galleryService){
+        public GalleryController(IGalleryService galleryService, IAccessControlService accessControlService){
             
             _galleryService = galleryService;
+            _accessControlService = accessControlService;
         }
 
         [HttpGet("GetYears/")]
@@ -28,8 +30,10 @@ namespace API_Lola.Controllers {
         }
 
         [HttpGet( "GetFolderContent/{folderId}" )]
-        public IActionResult GetFolderContent( int folderId ) {
+        public IActionResult GetFolderContent( int folderId, string token ) {
 
+            if( !_accessControlService.CheckAccess( folderId, token ) )
+                return BadRequest( "Vous n'avez pas accès à ce dossier" );
             return Ok(
                 new {
 
@@ -42,6 +46,8 @@ namespace API_Lola.Controllers {
         [HttpGet( "AddFavorite/{folderId}" )]
         public IActionResult AddFavorite( int folderId, string userToken ) {
 
+            if( !_accessControlService.CheckAccess( folderId, userToken ) )
+                return BadRequest( "Vous ne pouvez pas ajouter ce dossier au favoris." );
             try {
 
                 bool flag = _galleryService.AddToFavorite(folderId, userToken);
@@ -54,6 +60,12 @@ namespace API_Lola.Controllers {
 
                 return BadRequest( "Erreur fatale lors de l'ajout. " + ex.Message );
             }
+        }
+
+        [HttpGet("GetAll/")]
+        public IActionResult GetAll() {
+
+            return Ok( _galleryService.GetAll());
         }
     }
 }

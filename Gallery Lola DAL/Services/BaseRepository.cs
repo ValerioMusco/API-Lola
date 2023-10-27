@@ -1,10 +1,5 @@
 ﻿using Gallery_Lola_DAL.Interfaces;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Gallery_Lola_DAL.Services {
     public class BaseRepository : IBaseRepository {
@@ -14,6 +9,7 @@ namespace Gallery_Lola_DAL.Services {
         public BaseRepository(IDbConnection connection) {
             _connection = connection;
         }
+
         protected void GenerateParameter( IDbCommand dbCommand, string parameterName, object? value ) {
 
             IDataParameter parameter = dbCommand.CreateParameter();

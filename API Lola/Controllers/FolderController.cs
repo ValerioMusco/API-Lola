@@ -1,5 +1,4 @@
 ﻿using Gallery_Lola_DAL.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API_Lola.Controllers {
@@ -8,9 +7,11 @@ namespace API_Lola.Controllers {
     public class FolderController : ControllerBase {
 
         private readonly IFolderService _folderService;
+        private readonly IAccessControlService _accessControlService;
 
-        public FolderController(IFolderService folderService) {
+        public FolderController(IFolderService folderService, IAccessControlService accessControlService) {
             _folderService = folderService;
+            _accessControlService = accessControlService;
         }
 
         [HttpDelete("SupprimerDossier/")]
@@ -42,14 +43,22 @@ namespace API_Lola.Controllers {
         }
 
         [HttpGet( "Dossier/{folderId}" )]
-        public IActionResult GetFolderContent( int folderId ) {
+        public IActionResult GetFolderContent( int folderId, string token) {
 
+            if( !_accessControlService.CheckAccess( folderId, token ) )
+                return BadRequest( "Vous n'avez pas accès à ce dossier." );
             return Ok(
                 new {
                     FullSize = _folderService.GetFolderContent( folderId ),
                     Miniature = _folderService.GetFolderContent( folderId, true )
                 }
             );
+        }
+
+        [HttpGet( "GetAll/" )]
+        public IActionResult GetAllAccessibleFolder( string token ) {
+
+            return Ok( _folderService.GetAll( token ) );
         }
     }
 }
